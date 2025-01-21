@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARIA Accessibility Enhancer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    textarea, input[type="file"] {
+      width: 100%;
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #output {
+      white-space: pre-wrap;
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h1>ARIA Accessibility Enhancer</h1>
+  <p>Enter your HTML, CSS, and JavaScript code below, or upload files.</p>
+
+  <textarea id="htmlInput" rows="6" placeholder="Paste your HTML code here..."></textarea>
+  <textarea id="cssInput" rows="6" placeholder="Paste your CSS code here..."></textarea>
+  <textarea id="jsInput" rows="6" placeholder="Paste your JavaScript code here..."></textarea>
+  
+  <input type="file" id="fileInput" multiple>
+  <button id="submitButton">Generate ARIA Suggestions</button>
+
+  <h2>Output:</h2>
+  <div id="output">Your output will appear here...</div>
+
+  <script>
+    async function readFiles(files) {
+      let combinedCode = '';
+      for (const file of files) {
+        const text = await file.text();
+        combinedCode += `\n/* File: ${file.name} */\n${text}`;
+      }
+      return combinedCode;
+    }
+
+    document.getElementById('submitButton').addEventListener('click', async () => {
+      const htmlCode = document.getElementById('htmlInput').value;
+      const cssCode = document.getElementById('cssInput').value;
+      const jsCode = document.getElementById('jsInput').value;
+
+      const files = document.getElementById('fileInput').files;
+      let fileCode = '';
+      if (files.length > 0) {
+        fileCode = await readFiles(files);
+      }
+
+      const combinedCode = `
+        HTML:\n${htmlCode}
+        CSS:\n${cssCode}
+        JS:\n${jsCode}
+        Files:\n${fileCode}
+      `;
+
+      // Call the backend API
+      const response = await fetch('http://localhost:5000/get-aria', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code: combinedCode }),
+      });
+
+      const data = await response.json();
+      document.getElementById('output').textContent = data.suggestions;
+    });
+  </script>
+</body>
+</html>
